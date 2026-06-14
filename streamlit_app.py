@@ -1503,7 +1503,7 @@ def app_ui():
 
         # left side = runoff map
         with c1:
-            st.markdown("#### Modeled Runoff")
+            st.markdown("#### Baseline Runoff")
             components.v1.html(
                 st.session_state[f"{baseline_key}_map_html"],
                 height=500,
