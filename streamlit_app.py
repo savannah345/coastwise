@@ -168,7 +168,7 @@ def load_pipes(path: str):
     return gdf
 
 @st.cache_data(show_spinner=False)
-def load_raster_cells(path="raster_cells_per_sub.xlsx") -> pd.DataFrame:
+def load_raster_cells(path="LID_per_sub.xlsx") -> pd.DataFrame:
     return pd.read_excel(path)
 
 
@@ -760,7 +760,7 @@ def scenario_comparison_map_ui():
 
     merged["color"] = merged["difference"].apply(color)
 
-    merged["size"] = 40 + 80 * (
+    merged["size"] = 20 + 40 * (
         merged["difference"].abs() /
         max(merged["difference"].abs().max(), 1e-6)
     )
