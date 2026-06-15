@@ -49,48 +49,49 @@ DRY_ONLY         NO
 ;;Name           Format    Interval SCF      Source    
 ;;-------------- --------- -------- -------- ----------
 rain_gage        VOLUME    0:15     1.0      TIMESERIES rain_gage_timeseries
+
 [SUBCATCHMENTS]
 ;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack        
 ;;-------------- ---------------- ---------------- -------- -------- -------- -------- -------- ----------------
-Sub_1            rain_gage J89           2.617765 55       272.791  3.958    0                        
-Sub_10           rain_gage J12           2.18565  77       296.41   2.486    0                        
-Sub_11           rain_gage J6            0.668038 57       130.525  5.024    0                        
-Sub_12           rain_gage J12           5.314013 49       283.97   3.494    0                        
-Sub_13           rain_gage J2            4.37666  50       341.658  2.993    0                        
-Sub_14           rain_gage J104          14.910034 52      412.399  3.971    0                        
-Sub_15           rain_gage J96           3.683887 59       325.746  4.88     0                        
-Sub_16           rain_gage J32           2.810199 48       372.644  3.577    0                        
-Sub_17           rain_gage J30           4.94355  41       458.983  4.741    0                        
-Sub_18           rain_gage J8            1.515449 79       250      2.309    0                        
-Sub_19           rain_gage J121          2.153869 78       372      3.476    0                        
-Sub_2            rain_gage J6            4.807336 64       406.941  3.888    0                        
-Sub_20           rain_gage J13           11.541403 57      261.373  3.938    0                        
-Sub_21           rain_gage J46           2.477661 71       159.749  3.287    0                        
-Sub_22           rain_gage J118          0.941791 69       200      3.289    0                        
-Sub_23           rain_gage J103          2.947199 63       250      3.652    0                        
-Sub_24           rain_gage J4            5.931731 59       412.942  3.203    0                        
-Sub_25           rain_gage J52           3.377217 42       300      3.126    0                        
-Sub_26           rain_gage J1            6.443093 60       408.851  3.644    0                        
-Sub_27           rain_gage J118          2.294208 67       250      3.468    0                        
-Sub_28           rain_gage J43           10.607941 71      229.011  3.181    0                        
-Sub_29           rain_gage J7            4.458486 76       300      3.196    0                        
-Sub_3            rain_gage outfall       2.793798 72       465.996  3.77     0                        
-Sub_30           rain_gage J57           2.6365   74       390.638  3.081    0                        
-Sub_31           rain_gage J156          2.903509 72       292.33   2.778    0                        
-Sub_32           rain_gage J126          7.631167 77       310.577  2.818    0                        
-Sub_33           rain_gage J63           3.193978 83       461.414  3.079    0                        
-Sub_34           rain_gage J5            2.28701  65       250      2.624    0                        
-Sub_35           rain_gage J3            2.761793 70       217.643  2.817    0                        
-Sub_36           rain_gage J70           1.431032 50       235.883  2.23     0                        
-Sub_37           rain_gage J71           1.872794 78       251.701  3.23     0                        
-Sub_38           rain_gage J23           4.365819 73       354.849  3.241    0                        
-Sub_39           rain_gage J147          11.94458 56       244.722  2.953    0                        
-Sub_4            rain_gage J11           2.176058 82       358.743  3.974    0                        
-Sub_5            rain_gage J25           2.015964 96       268.687  3.048    0                        
-Sub_6            rain_gage J26           1.687669 85       314.595  3.714    0                        
-Sub_7            rain_gage J17           0.858799 75       147.578  3.365    0                        
-Sub_8            rain_gage J10           0.368009 39       73.533   3.144    0                        
-Sub_9            rain_gage J9            4.517812 42       345.456  3.89     0                        
+Sub_1            rain_gage        J89              2.617765 55       272.791  3.958    0                        
+Sub_10           rain_gage        J12              2.18565  77       296.41   2.486    0                        
+Sub_11           rain_gage        J6               0.668038 57       130.525  5.024    0                        
+Sub_12           rain_gage        J12              5.314013 49       283.97   3.494    0                        
+Sub_13           rain_gage        J2               4.37666  50       341.658  2.993    0                        
+Sub_14           rain_gage        J104             14.910034 52      412.399  3.971    0                        
+Sub_15           rain_gage        J96              3.683887 59       325.746  4.88     0                        
+Sub_16           rain_gage        J32              2.810199 48       372.644  3.577    0                        
+Sub_17           rain_gage        J30              4.94355  41       458.983  4.741    0                        
+Sub_18           rain_gage        J8               1.515449 79       250      2.309    0                        
+Sub_19           rain_gage        J121             2.153869 78       372      3.476    0                        
+Sub_2            rain_gage        J6               4.807336 64       406.941  3.888    0                        
+Sub_20           rain_gage        J13              11.541403 57      261.373  3.938    0                        
+Sub_21           rain_gage        J46              2.477661 71       159.749  3.287    0                        
+Sub_22           rain_gage        J118             0.941791 69       200      3.289    0                        
+Sub_23           rain_gage        J103             2.947199 63       250      3.652    0                        
+Sub_24           rain_gage        J4               5.931731 59       412.942  3.203    0                        
+Sub_25           rain_gage        J52              3.377217 42       300      3.126    0                        
+Sub_26           rain_gage        J1               6.443093 60       408.851  3.644    0                        
+Sub_27           rain_gage        J118             2.294208 67       250      3.468    0                        
+Sub_28           rain_gage        J43              10.607941 71      229.011  3.181    0                        
+Sub_29           rain_gage        J7               4.458486 76       300      3.196    0                        
+Sub_3            rain_gage        outfall          2.793798 72       465.996  3.77     0                        
+Sub_30           rain_gage        J57              2.6365   74       390.638  3.081    0                        
+Sub_31           rain_gage        J156             2.903509 72       292.33   2.778    0                        
+Sub_32           rain_gage        J126             7.631167 77       310.577  2.818    0                        
+Sub_33           rain_gage        J63              3.193978 83       461.414  3.079    0                        
+Sub_34           rain_gage        J5               2.28701  65       250      2.624    0                        
+Sub_35           rain_gage        J3               2.761793 70       217.643  2.817    0                        
+Sub_36           rain_gage        J70              1.431032 50       235.883  2.23     0                        
+Sub_37           rain_gage        J71              1.872794 78       251.701  3.23     0                        
+Sub_38           rain_gage        J23              4.365819 73       354.849  3.241    0                        
+Sub_39           rain_gage        J147             11.94458 56       244.722  2.953    0                        
+Sub_4            rain_gage        J11              2.176058 82       358.743  3.974    0                        
+Sub_5            rain_gage        J25              2.015964 96       268.687  3.048    0                        
+Sub_6            rain_gage        J26              1.687669 85       314.595  3.714    0                        
+Sub_7            rain_gage        J17              0.858799 75       147.578  3.365    0                        
+Sub_8            rain_gage        J10              0.368009 39       73.533   3.144    0                        
+Sub_9            rain_gage        J9               4.517812 42       345.456  3.89     0                        
 
 [SUBAREAS]
 ;;Subcatchment   N-Imperv   N-Perv     S-Imperv   S-Perv     PctZero    RouteTo    PctRouted 
@@ -243,13 +244,7 @@ J96              2.16       1.026      0          0          2000
 [OUTFALLS]
 ;;Name           Elevation  Type       Stage Data       Gated    Route To        
 ;;-------------- ---------- ---------- ---------------- -------- ----------------
-outfall          -1.6       TIMESERIES tide             $TIDE_GATE_CONTROL$
-PumpOutfall          -1.6       FREE             NO                                                        
-
-
-[PUMPS]
-;;Name   FromNode   ToNode   Curve   Status
-$PUMP_BLOCK$
+outfall          -1.6       TIMESERIES tide             NO                
 
 [CONDUITS]
 ;;Name           From Node        To Node          Length     Roughness  InOffset   OutOffset  InitFlow   MaxFlow   
@@ -320,7 +315,7 @@ C69              J9               J10              52         0.01       0      
 ;60''X120*
 C70_1            J10              J14              279.891    0.01       -0.6       -1.5       0          0         
 ;60''X120*
-C70_2            J14              outfall          5.47       0.01      -1.5         -1.6      0          0
+C70_2            J14              outfall          5.47       0.01       -1.5       -1.6       0          0         
 C78              J30              J18              281        0.01       -0.3       -0.34      0          0         
 ;60''X96''
 C84              J118             J103             163        0.01       1.4        0.97       0          0         
@@ -338,47 +333,47 @@ C96              J126             J63              582        0.01       7.59   
 [XSECTIONS]
 ;;Link           Shape        Geom1            Geom2      Geom3      Geom4      Barrels    Culvert   
 ;;-------------- ------------ ---------------- ---------- ---------- ---------- ---------- ----------
-C103_1           CIRCULAR     1.5              0          0          0          1                    
-C103_3           CIRCULAR     1.5              0          0          0          1                    
-C103_4           CIRCULAR     1.5              0          0          0          1                    
-C108             CIRCULAR     1.25             0          0          0          1                    
-C110             CIRCULAR     1.5              0          0          0          1                    
-C125_1           CIRCULAR     3                0          0          0          1                    
-C125_2           RECT_CLOSED  6                5          0          0          1                    
-C147             CIRCULAR     2                0          0          0          1                    
-C147_2           CIRCULAR     2                0          0          0          1                    
-C147_5           CIRCULAR     2.007            0          0          0          1                    
-C15              CIRCULAR     1.75             0          0          0          1                    
-C152             CIRCULAR     1.256            0          0          0          1                    
-C152_1           CIRCULAR     1.256            0          0          0          1                    
-C158             CIRCULAR     1.75             0          0          0          1                    
-C159             RECT_CLOSED  6                5          0          0          1                    
-C160             RECT_CLOSED  6                5          0          0          1                    
-C167             RECT_CLOSED  6                5          0          0          1                    
-C174             CIRCULAR     1                0          0          0          1                    
-C18_1            RECT_CLOSED  6                5          0          0          1                    
-C18_2            RECT_CLOSED  6                5          0          0          1                    
-C2               RECT_CLOSED  6                5          0          0          1                    
-C26              CIRCULAR     1                0          0          0          1                    
-C27              CIRCULAR     1.25             0          0          0          1                    
-C38              CIRCULAR     1.5              0          0          0          1                    
-C47              CIRCULAR     1.75             0          0          0          1                    
-C57              RECT_CLOSED  6                5          0          0          1                    
-C62              RECT_CLOSED  6                5          0          0          1                    
-C64              CIRCULAR     2                0          0          0          1                    
-C64_2            CIRCULAR     2                0          0          0          1                    
-C68_1            CIRCULAR     2                0          0          0          1                    
-C68_2            CIRCULAR     2                0          0          0          1                    
-C69              CIRCULAR     2                0          0          0          1                    
-C70_1            RECT_CLOSED  8                5          0          0          1                    
-C70_2            RECT_CLOSED  8                5          0          0          1
-C78              RECT_CLOSED  6                5          0          0          1                    
-C84              RECT_CLOSED  6                5          0          0          1                    
-C85              RECT_CLOSED  6                5          0          0          1                    
-C86              RECT_CLOSED  6                5          0          0          1                    
-C90_1            RECT_CLOSED  1.5              0.91       0          0          1                    
-C90_2            RECT_CLOSED  1.5              0.91       0          0          1                    
-C96              CIRCULAR     1.25             0          0          0          1                    
+C103_1           CIRCULAR     1.65             0          0          0          1                    
+C103_3           CIRCULAR     1.65             0          0          0          1                    
+C103_4           CIRCULAR     1.65             0          0          0          1                    
+C108             CIRCULAR     1.375            0          0          0          1                    
+C110             CIRCULAR     1.65             0          0          0          1                    
+C125_1           CIRCULAR     3.3              0          0          0          1                    
+C125_2           RECT_CLOSED  6.6              5          0          0          1                    
+C147             CIRCULAR     2.2              0          0          0          1                    
+C147_2           CIRCULAR     2.2              0          0          0          1                    
+C147_5           CIRCULAR     2.208            0          0          0          1                    
+C15              CIRCULAR     1.925            0          0          0          1                    
+C152             CIRCULAR     1.382            0          0          0          1                    
+C152_1           CIRCULAR     1.382            0          0          0          1                    
+C158             CIRCULAR     1.925            0          0          0          1                    
+C159             RECT_CLOSED  6.6              5          0          0          1                    
+C160             RECT_CLOSED  6.6              5          0          0          1                    
+C167             RECT_CLOSED  6.6              5          0          0          1                    
+C174             CIRCULAR     1.1              0          0          0          1                    
+C18_1            RECT_CLOSED  6.6              5          0          0          1                    
+C18_2            RECT_CLOSED  6.6              5          0          0          1                    
+C2               RECT_CLOSED  6.6              5          0          0          1                    
+C26              CIRCULAR     1.1              0          0          0          1                    
+C27              CIRCULAR     1.375            0          0          0          1                    
+C38              CIRCULAR     1.65             0          0          0          1                    
+C47              CIRCULAR     1.925            0          0          0          1                    
+C57              RECT_CLOSED  6.6              5          0          0          1                    
+C62              RECT_CLOSED  6.6              5          0          0          1                    
+C64              CIRCULAR     2.2              0          0          0          1                    
+C64_2            CIRCULAR     2.2              0          0          0          1                    
+C68_1            CIRCULAR     2.2              0          0          0          1                    
+C68_2            CIRCULAR     2.2              0          0          0          1                    
+C69              CIRCULAR     2.2              0          0          0          1                    
+C70_1            RECT_CLOSED  8.8              5          0          0          1                    
+C70_2            RECT_CLOSED  8.8              5          0          0          1                    
+C78              RECT_CLOSED  6.6              5          0          0          1                    
+C84              RECT_CLOSED  6.6              5          0          0          1                    
+C85              RECT_CLOSED  6.6              5          0          0          1                    
+C86              RECT_CLOSED  6.6              5          0          0          1                    
+C90_1            RECT_CLOSED  1.65             0.91       0          0          1                    
+C90_2            RECT_CLOSED  1.65             0.91       0          0          1                    
+C96              CIRCULAR     1.375            0          0          0          1                    
 
 [LOSSES]
 ;;Link           Kentry     Kexit      Kavg       Flap Gate  Seepage   
@@ -388,15 +383,8 @@ C96              CIRCULAR     1.25             0          0          0          
 ;;Name           Date       Time       Value     
 ;;-------------- ---------- ---------- ----------
 $RAINFALL_TIMESERIES$
-$TIDE_TIMESERIES$    
+$TIDE_TIMESERIES$  
 
-[CURVES]
-;;Name           Type       X-Value    Y-Value   
-;;-------------- ---------- ---------- ----------
-$PUMP_CURVE_BLOCK$  
-
-[CONTROLS]
-$PUMP_RULES$
 
 [REPORT]
 ;;Reporting Options

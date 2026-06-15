@@ -94,16 +94,16 @@ def to_ui_tide(feet, ui_unit):
         return feet * 0.3048
     return feet
 
-def make_scenario_key(prefix: str, subset: str, gate_flag: str, rain_variant: str) -> str:
+def make_scenario_key(prefix: str, subset: str, pipe_size: str, rain_variant: str) -> str:
     prefix = prefix.strip("_") + "_"
 
     subset = subset.lower()
-    gate = "gate" if gate_flag.upper() == "YES" else "nogate"
+    pipe = "biggerpipes" if pipe_size == "bigger" else "origpipes"
     rain = "future" if rain_variant.lower() == "future" else "current"
 
-    return f"{prefix}{subset}_{gate}_{rain}"
+    return f"{prefix}{subset}_{pipe}_{rain}"
 
-def make_display_label(subset: str, gate_flag: str) -> str:
+def make_display_label(subset: str, pipe_size: str) -> str:
     subset_map = {
         "baseline": "Baseline",
         "all": "All Subcatchments",
@@ -112,9 +112,8 @@ def make_display_label(subset: str, gate_flag: str) -> str:
         "highrunoff": "High-Runoff",
     }
 
-    gate_text = "TG & Pump ON" if gate_flag.upper() == "YES" else "TG & Pump OFF"
-
-    return f"{subset_map.get(subset, subset)} – {gate_text}"
+    pipe_text = "Increased Pipe Diameter by 10%" if pipe_size == "bigger" else "Original Pipe Diameter"
+    return f"{subset_map.get(subset, subset)} – {pipe_text}"
 
 def _read_text_keep(path: str) -> str:
     """Read file contents and keep artifacts in temp for later use."""
@@ -426,26 +425,6 @@ def build_fixed_sim_windows(storm_duration_minutes):
 
     return sim_start, sim_end, report_start
 
-PUMP_BLOCK = "Pump_1  J14  PumpOutfall  PumpCurve1  ON"
-
-PUMP_CURVE_BLOCK = (
-    "PumpCurve1 Pump3 0 0\n"
-    "PumpCurve1 1 25\n"
-    "PumpCurve1 2 45\n"
-    "PumpCurve1 3 60\n"
-    "PumpCurve1 4 70\n"    
-    "PumpCurve1 7 78\n"
-)
-
-PUMP_RULES = (
-    "RULE Turn_Pump_On\n"
-    "IF NODE outfall Head >= NODE J14 Head - 0.05\n"
-    "AND NODE J14 Depth > 0.1\n"
-    "THEN PUMP Pump_1 STATUS = ON\n\n"
-    "RULE Turn_Pump_Off\n"
-    "IF NODE outfall Head < NODE J14 Head - 0.15\n"
-    "THEN PUMP Pump_1 STATUS = OFF"
-)
 
 def extract_node_flooding_from_rpt(txt: str, preview: bool = False) -> pd.DataFrame:
     """
@@ -532,20 +511,23 @@ def extract_node_flooding_from_rpt(txt: str, preview: bool = False) -> pd.DataFr
 
     return df
 
-def run_swmm_senario(
+
+def run_swmm_scenario(
     scenario_name: str,
     rain_lines: List[str],
     tide_lines: List[str],
     lid_lines: List[str],
-    gate_flag: str,
+    pipe_size: str,                   # "original" or "bigger"
     duration_minutes: int,
-    template_path: str = "SWMM_Project.inp",
+    prefix: str
 ):
-    """
-    Clean SWMM runner using only RPT parsing.
-    Assumes rainfall + tide lines already clipped and
-    time series rebuilt starting at 06:00.
-    """
+
+
+    if pipe_size == "bigger":
+        template_path = st.session_state[f"{prefix}template_bigger"]
+    else:
+        template_path = st.session_state[f"{prefix}template_original"]
+
     output_dir = tempfile.mkdtemp(prefix=f"{scenario_name}_")
 
     inp_path = os.path.join(output_dir, f"{scenario_name}.inp")
@@ -569,15 +551,6 @@ def run_swmm_senario(
     st.session_state[f"{scenario_name}_report_start"] = report_start_dt
     st.session_state[f"{scenario_name}_report_end"] = sim_end_dt
 
-    # Pump logic
-    if gate_flag == "YES":
-        pump_block = PUMP_BLOCK
-        pump_curve_block = PUMP_CURVE_BLOCK
-        pump_rule_block = PUMP_RULES
-    else:
-        pump_block = ""
-        pump_curve_block = ""
-        pump_rule_block = ""
 
     with open(template_path, "r") as f:
         text = f.read()
@@ -586,16 +559,12 @@ def run_swmm_senario(
         text.replace("$RAINFALL_TIMESERIES$", "\n".join(rain_lines))
             .replace("$TIDE_TIMESERIES$", "\n".join(tide_lines))
             .replace("$LID_USAGE$", "\n".join(lid_lines))
-            .replace("$TIDE_GATE_CONTROL$", gate_flag)
             .replace("$SIM_START_DATE$", sim_start_date)
             .replace("$SIM_START_TIME$", sim_start_time)
             .replace("$REPORT_START_DATE$", report_start_date)
             .replace("$REPORT_START_TIME$", report_start_time)
             .replace("$SIM_END_DATE$", sim_end_date)
             .replace("$SIM_END_TIME$", sim_end_time)
-            .replace("$PUMP_BLOCK$", pump_block)
-            .replace("$PUMP_CURVE_BLOCK$", pump_curve_block)
-            .replace("$PUMP_RULES$", pump_rule_block)
     )
 
     with open(inp_path, "w") as f:
@@ -1087,7 +1056,12 @@ def app_ui():
 
     st.session_state.setdefault("rpts", {})
 
-    template_inp    = "SWMM_Project.inp"
+    template_original = "SWMM_Project_original_pipes.inp"
+    template_bigger   = "SWMM_Project_bigger_pipes.inp"
+
+    st.session_state[f"{prefix}template_original"] = template_original
+    st.session_state[f"{prefix}template_bigger"]   = template_bigger
+
     WS_SHP_PATH     = st.session_state.get("WS_SHP_PATH", "map_files/Subcatchment.shp")
 
     future_mult = 1.2
@@ -1101,22 +1075,19 @@ def app_ui():
     
     st.markdown("""
     <style>
-    [data-testid="stTooltipContent"] {
-        font-size: 12.5rem !important;
-        line-height: 1.55 !important;
-        max-width: 360px !important;
-        white-space: normal !important;  
-    }
-
+    /* Default tooltip size everywhere else (dropdowns, selectboxes, etc.) */
+    [data-testid="stTooltipContent"],
     div[data-baseweb="tooltip"] {
-        font-size: 12.5rem !important;
-        line-height: 1.55 !important;
-        max-width: 360px !important;
+        font-size: 0.875rem !important;   /* ~14px, normal */
+        line-height: 1.35 !important;
     }
 
-    div[data-baseweb="tooltip"] .content,
-    [data-testid="stTooltipContent"] {
-        padding: 0.5rem 0.75rem !important;
+    /* But INSIDE .map-tooltip-area, tooltips are large */
+    .map-tooltip-area [data-testid="stTooltipContent"],
+    .map-tooltip-area div[data-baseweb="tooltip"] {
+        font-size: 1.4rem !important;     /* nice readable size */
+        line-height: 1.5 !important;
+        max-width: 360px !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -1333,7 +1304,6 @@ def app_ui():
         "tide_source": tide_source,
         "moon_phase": moon_phase,
         "align_mode": align_mode,
-        f"{prefix}template_inp": template_inp,
     })
 
     # ------------------------------------------------------------
@@ -1443,25 +1413,23 @@ def app_ui():
     if st.button("Run Baseline Scenario", key=f"{prefix}_btn_run_baseline"):
 
         try:
-            lid_lines = [";"]  # no LIDs in baseline
+            lid_lines = [";"]  # no LIDs
             rain_variant = st.session_state.get("rain_variant", "current")
 
-            # canonical scenario name
-            baseline_key = make_scenario_key(prefix, "baseline", "NO", rain_variant)
+            baseline_key = make_scenario_key(prefix, "baseline", "original", rain_variant)
 
-            # choose rain series
             rain_lines_use = rain_lines_cur if rain_variant == "current" else rain_lines_fut
 
-            # run SWMM
-            info = run_swmm_senario(
-                baseline_key,
-                rain_lines_use,
-                tide_lines,
-                lid_lines,
-                "NO",  # gate off
-                duration_minutes,
-                template_path=template_inp
+            info = run_swmm_scenario(
+                scenario_name=baseline_key,
+                rain_lines=rain_lines_use,
+                tide_lines=tide_lines,
+                lid_lines=lid_lines,
+                pipe_size="original",
+                duration_minutes=duration_minutes,
+                prefix=prefix
             )
+
 
             # store baseline results under canonical keys
             st.session_state["scenario_runoff"][baseline_key] = info["df_runoff"]
@@ -1469,7 +1437,7 @@ def app_ui():
             st.session_state["scenario_infiltration"][baseline_key] = st.session_state.get(f"{baseline_key}_storm_infiltration", 0.0)
 
             # label for UI only
-            st.session_state["scenario_display_labels"][baseline_key] = make_display_label("baseline", "NO")
+            st.session_state["scenario_display_labels"][baseline_key] = make_display_label("baseline", "original")
 
             # build baseline runoff map
             map_html, legend_html = _build_baseline_map_html(
@@ -1488,12 +1456,7 @@ def app_ui():
         except Exception as e:
             st.error(f"Baseline simulation failed: {e}")
 
-    baseline_key = make_scenario_key(
-        prefix,
-        "baseline",
-        "NO",
-        st.session_state.get("rain_variant", "current")
-    )
+    baseline_key = make_scenario_key(prefix, "baseline", "original", st.session_state.get("rain_variant", "current"))
 
     if st.session_state.get(f"{baseline_key}_ready", False):
 
@@ -1849,8 +1812,7 @@ def app_ui():
             st.markdown("### Run Focus Area Scenarios")
 
             st.info(
-                "This will run all 10 scenarios: Baseline, All-Subcatchments, "
-                "Upstream, Downstream, High-Runoff 2x where the Tide Gate and Pump are On/Off, respectively."
+                "This will run all 10 scenarios: Baseline, All Subcatchments, Upstream, Downstream, and High‑Runoff — each evaluated twice, once with the original pipe sizes and once with pipes increased by 10%."
             )
 
             if st.button("Run All Scenarios", key=f"{prefix}_run_all_scenarios"):
@@ -1889,48 +1851,26 @@ def app_ui():
                 # RUN ALL 10 SCENARIOS
                 # -----------------------------
                 try:
+                    pipe_sizes = ["original", "bigger"]
+
                     for subset_key, plan_dict in plan_sets.items():
-                        for gate_key, gate_flag in gate_opts.items():
+                        for pipe_size in pipe_sizes:
 
-                            # --------------------------------------------
-                            # 1. Build canonical scenario key (for files & state)
-                            # --------------------------------------------
-                            scen_key = make_scenario_key(
-                                prefix,
-                                subset=subset_key,
-                                gate_flag=gate_flag,
-                                rain_variant=rain_variant,
-                            )
+                            scen_key = make_scenario_key(prefix, subset_key, pipe_size, rain_variant)
 
-                            # --------------------------------------------
-                            # 2. Readable label (no rain variant)
-                            # --------------------------------------------
-                            display_label = make_display_label(
-                                subset=subset_key,
-                                gate_flag=gate_flag
-                            )
-
+                            display_label = make_display_label(subset_key, pipe_size)
                             st.session_state["scenario_display_labels"][scen_key] = display_label
 
-                            # --------------------------------------------
-                            # 3. Build LID lines
-                            # --------------------------------------------
-                            if subset_key == "baseline":
-                                lid_lines = [";"]  # no LIDs
-                            else:
-                                lid_lines = generate_lid_usage_lines(plan_dict, raster_df)
+                            lid_lines = [";"] if subset_key == "baseline" else generate_lid_usage_lines(plan_dict, raster_df)
 
-                            # --------------------------------------------
-                            # 4. Run SWMM scenario
-                            # --------------------------------------------
-                            result = run_swmm_senario(
+                            result = run_swmm_scenario(
                                 scenario_name=scen_key,
                                 rain_lines=rain_lines,
                                 tide_lines=tide_lines,
                                 lid_lines=lid_lines,
-                                gate_flag=gate_flag,
+                                pipe_size=pipe_size,
                                 duration_minutes=duration_minutes,
-                                template_path=template_inp,
+                                prefix=prefix
                             )
 
                             # --------------------------------------------
