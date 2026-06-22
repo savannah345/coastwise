@@ -112,7 +112,7 @@ def make_display_label(subset: str, pipe_size: str) -> str:
         "highrunoff": "High-Runoff",
     }
 
-    pipe_text = "Increased Pipe Diameter by 10%" if pipe_size == "bigger" else "Original Pipe Diameter"
+    pipe_text = "Upsized to next standard pipe diameter" if pipe_size == "bigger" else "Original Pipe Diameter"
     return f"{subset_map.get(subset, subset)} – {pipe_text}"
 
 def _read_text_keep(path: str) -> str:
@@ -1812,7 +1812,7 @@ def app_ui():
             st.markdown("### Run Focus Area Scenarios")
 
             st.info(
-                "This will run all 10 scenarios: Baseline, All Subcatchments, Upstream, Downstream, and High‑Runoff — each evaluated twice, once with the original pipe sizes and once with pipes increased by 10%."
+                "This runs all 10 scenarios — Baseline, All Subcatchments, Upstream, Downstream, and High‑Runoff — each evaluated twice: once with original pipe sizes and once with pipes upsized to the next standard diameter."
             )
 
             if st.button("Run All Scenarios", key=f"{prefix}_run_all_scenarios"):

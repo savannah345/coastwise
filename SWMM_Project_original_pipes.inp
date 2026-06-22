@@ -341,10 +341,10 @@ C125_1           CIRCULAR     3                0          0          0          
 C125_2           RECT_CLOSED  6                5          0          0          1                    
 C147             CIRCULAR     2                0          0          0          1                    
 C147_2           CIRCULAR     2                0          0          0          1                    
-C147_5           CIRCULAR     2.007            0          0          0          1                    
+C147_5           CIRCULAR     2            0          0          0          1                    
 C15              CIRCULAR     1.75             0          0          0          1                    
-C152             CIRCULAR     1.256            0          0          0          1                    
-C152_1           CIRCULAR     1.256            0          0          0          1                    
+C152             CIRCULAR     1.25            0          0          0          1                    
+C152_1           CIRCULAR     1.25            0          0          0          1                    
 C158             CIRCULAR     1.75             0          0          0          1                    
 C159             RECT_CLOSED  6                5          0          0          1                    
 C160             RECT_CLOSED  6                5          0          0          1                    
