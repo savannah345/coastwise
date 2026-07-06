@@ -14,7 +14,7 @@ __all__ = [
     "generate_tide_curve",
     "find_tide_extrema",
     "align_rainfall_to_tide",
-    "fetch_greenstream_dataframe",
+    "fetch_RT_tide_dataframe",
     "build_timestep_and_resample_15min",
     "get_tide_real_or_synthetic",
     "get_aligned_rainfall",
@@ -232,7 +232,7 @@ def _click_handle_by_center(page, handle):
         cy = box["y"] + box["height"] / 2
         page.mouse.click(cx, cy)
 
-def fetch_greenstream_dataframe() -> pd.DataFrame:
+def fetch_RT_tide_dataframe() -> pd.DataFrame:
     """
     Opens the Greenstream dashboard, does:
       Filter -> Last 2 Days -> OK -> Download,
@@ -409,7 +409,7 @@ def get_tide_real_or_synthetic(moon_phase: str,
       used_live  (bool)
     """
     try:
-        df_live = fetch_greenstream_dataframe()
+        df_live = fetch_RT_tide_dataframe()
         m15, tide_15 = build_timestep_and_resample_15min(
             df_raw=df_live,
             water_col=WATER_COL_LIVE,

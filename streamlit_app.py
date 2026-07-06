@@ -238,6 +238,7 @@ def extract_total_runoff_from_text(txt: str) -> pd.DataFrame:
     if i >= len(lines): return pd.DataFrame(columns=["Subcatchment","Total_in"])
     i += 1
     rows = []
+
     float_re = re.compile(r"[-+]?\d+(?:\.\d+)?")
     while i < len(lines):
         raw = lines[i].rstrip("\n")
