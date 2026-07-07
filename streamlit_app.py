@@ -1243,6 +1243,8 @@ def app_ui():
         submitted = st.form_submit_button("Apply Settings")
 
     if submitted:
+        st.session_state["storm_run_id"] = datetime.now().strftime("%Y%m%d_%H%M%S")
+
         st.session_state.cfg = {
             "ui_unit": unit,
             "moon_phase": moon_phase,
@@ -1815,24 +1817,21 @@ def app_ui():
                     "highrunoff": plan_highro,
                 }
 
-                gate_opts = {
-                    "nogate": "NO",
-                    "gate": "YES",
-                }
-
                 st.session_state["scenario_display_labels"] = {}
                 st.session_state["scenario_flood_volume"] = {}
                 st.session_state["scenario_infiltration"] = {}
                 st.session_state["scenario_runoff"] = {}
+
 
                 try:
                     pipe_sizes = ["original", "bigger"]
 
                     for subset_key, plan_dict in plan_sets.items():
                         for pipe_size in pipe_sizes:
+                            storm_run_id = st.session_state.get("storm_run_id", datetime.now().strftime("%Y%m%d_%H%M%S"))
 
-                            scen_key = make_scenario_key(prefix, subset_key, pipe_size, rain_variant)
-
+                            scen_key_base = make_scenario_key(prefix, subset_key, pipe_size, rain_variant)
+                            scen_key = f"{scen_key_base}_{storm_run_id}"
                             display_label = make_display_label(subset_key, pipe_size)
                             st.session_state["scenario_display_labels"][scen_key] = display_label
 
@@ -1847,6 +1846,7 @@ def app_ui():
                                 duration_minutes=duration_minutes,
                                 prefix=prefix
                             )
+                            
 
                             flood_df = st.session_state.get(f"{scen_key}_node_flooding_summary")
                             infiltration = st.session_state.get(f"{scen_key}_storm_infiltration", 0.0)
@@ -1875,12 +1875,17 @@ def app_ui():
 
     col1, col2 = st.columns(2)
 
+
     with col1:
-        if st.button("🔄 Start New Storm / Reset Simulation"):
+        if st.button(
+            "🔄 Start New Storm / Reset Simulation",
+        ):
             reset_simulation_state()
 
     with col2:
-        if st.button("🚪 Logout"):
+        if st.button(
+            "🚪 Logout",
+        ):
             logout()
 
 if "user_id" not in st.session_state:
