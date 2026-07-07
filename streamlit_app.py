@@ -25,7 +25,6 @@ from rainfall_and_tide_generator import (
 
 st.set_page_config(page_title="CoastWise", layout="centered")
 
-
 # Your existing theme dictionary
 alt_theme = {
     "config": {
@@ -297,7 +296,6 @@ def enforce_rg_limit(plan, RG_limit_all, caps_RG):
 
     remove_needed = current_rg - RG_limit_all
 
-    # remove from lowest RG-capacity subs first to avoid breaking constraints later
     subs_sorted = sorted(plan.keys(), key=lambda s: caps_RG.get(s, 0))
 
     for s in subs_sorted:
@@ -323,7 +321,6 @@ def fill_with_rb_to_budget(plan, caps_RB, cRG, cRB, target_budget):
     if spend >= target_budget:
         return plan
 
-    # add RB in subs with the most RB capacity
     subs_sorted = sorted(plan.keys(), key=lambda s: caps_RB.get(s, 0), reverse=True)
 
     for s in subs_sorted:
@@ -339,7 +336,6 @@ def fill_with_rb_to_budget(plan, caps_RB, cRG, cRB, target_budget):
 def render_focus_placement_map(plan, title, ws_shp_path, widget_key):
     gdf = load_ws(ws_shp_path).copy()
 
-    # Attach counts
     gdf["_RG"] = gdf["NAME"].map(lambda s: plan.get(s, {}).get("rain_gardens", 0))
     gdf["_RB"] = gdf["NAME"].map(lambda s: plan.get(s, {}).get("rain_barrels", 0))
     gdf["_TOTAL_LID"] = gdf["_RG"] + gdf["_RB"]
@@ -353,7 +349,6 @@ def render_focus_placement_map(plan, title, ws_shp_path, widget_key):
 
     gdf["_fill"] = gdf["_TOTAL_LID"].map(fixed_color)
 
-    # Labels
     reps = gdf.geometry.representative_point()
     labels = pd.DataFrame({
         "lon": reps.x,
@@ -371,7 +366,6 @@ def render_focus_placement_map(plan, title, ws_shp_path, widget_key):
         get_alignment_baseline="'center'"
     )
 
-    # GeoJSON layer
     poly_layer = pdk.Layer(
         "GeoJsonLayer",
         data=gdf.__geo_interface__,
@@ -464,7 +458,6 @@ def extract_node_flooding_from_rpt(txt: str, preview: bool = False) -> pd.DataFr
             print("Node Flooding Summary header not found.")
         return df
 
-    # 3. Skip header underline (dashes)
     i += 1
     while i < len(lines) and "-" in lines[i]:
         i += 1
@@ -472,11 +465,9 @@ def extract_node_flooding_from_rpt(txt: str, preview: bool = False) -> pd.DataFr
     rows = []
     float_re = re.compile(r"[-+]?\d+(?:\.\d+)?")
 
-    # 4. Parse rows of the table
     while i < len(lines):
         raw = lines[i].rstrip("\n")
 
-        # Stop conditions (same style as runoff parser)
         if not raw.strip():
             break
         if raw.lstrip().startswith("*"):
@@ -487,14 +478,12 @@ def extract_node_flooding_from_rpt(txt: str, preview: bool = False) -> pd.DataFr
         parts = raw.split()
         nums = [float(m.group(0)) for m in float_re.finditer(raw)]
 
-        # SWMM flooding summary format basically ends with two key numbers:
-        # [... Hours, MaxRate, ... , TotalFlood(MG), MaxDepth(ft)]
         if len(parts) >= 7 and len(nums) >= 5:
             node = parts[0]
             hours = nums[0]
             max_rate = nums[1]
-            total_mg = nums[-2]     # second-to-last numeric
-            max_depth = nums[-1]    # last numeric
+            total_mg = nums[-2]     
+            max_depth = nums[-1]    
 
             total_ft3 = total_mg * 1_000_000 * 0.133681  # MG → ft³
 
@@ -518,7 +507,7 @@ def run_swmm_scenario(
     rain_lines: List[str],
     tide_lines: List[str],
     lid_lines: List[str],
-    pipe_size: str,                   # "original" or "bigger"
+    pipe_size: str,                   
     duration_minutes: int,
     prefix: str
 ):
@@ -535,7 +524,6 @@ def run_swmm_scenario(
     rpt_path = os.path.join(output_dir, f"{scenario_name}.rpt")
     out_path = os.path.join(output_dir, f"{scenario_name}.out")
 
-    # Build fixed simulation window
     sim_start_dt, sim_end_dt, report_start_dt = build_fixed_sim_windows(duration_minutes)
 
     sim_start_date = sim_start_dt.strftime("%m/%d/%Y")
@@ -546,7 +534,6 @@ def run_swmm_scenario(
     report_start_date = report_start_dt.strftime("%m/%d/%Y")
     report_start_time = report_start_dt.strftime("%H:%M:%S")
 
-    # Store metadata
     st.session_state[f"{scenario_name}_sim_start"] = sim_start_dt
     st.session_state[f"{scenario_name}_sim_end"] = sim_end_dt
     st.session_state[f"{scenario_name}_report_start"] = report_start_dt
@@ -669,7 +656,6 @@ def flooding_summary_ui():
 
     st.altair_chart(final_chart, use_container_width=True)
 
-
 def scenario_comparison_map_ui():
     st.subheader("Compare Two Scenarios")
 
@@ -709,7 +695,6 @@ def scenario_comparison_map_ui():
     nodes_gdf["lon"] = nodes_gdf.geometry.x
     nodes_gdf["lat"] = nodes_gdf.geometry.y
 
-    # ---- MERGE A AND B ----
     merged = (
         nodes_gdf
         .merge(dfA[["node", "max_depth_ft"]].rename(columns={"max_depth_ft": "A_depth"}),
@@ -722,7 +707,6 @@ def scenario_comparison_map_ui():
     merged["B_depth"] = merged["B_depth"].fillna(0)
     merged["difference"] = (merged["A_depth"] - merged["B_depth"]).round(2)
 
-    # ---- COLOR RULES ----
     def color(diff):
         if diff > 0:
             return [220, 50, 40, 200]    # Scenario A worse
@@ -737,7 +721,6 @@ def scenario_comparison_map_ui():
         max(merged["difference"].abs().max(), 1e-6)
     )
 
-    # ---- SUBCATCHMENTS SHAPEFILE ----
     ws_gdf_local = load_ws(WS_SHP_PATH)
     centroid = ws_gdf_local.geometry.union_all().centroid
     view_state = pdk.ViewState(latitude=centroid.y, longitude=centroid.x, zoom=14.5)
@@ -750,8 +733,6 @@ def scenario_comparison_map_ui():
         line_width_min_pixels=1,
     )
 
-
-    # ---- NODES LAYER ----
     nodes_layer = pdk.Layer(
         "ScatterplotLayer",
         data=merged,
@@ -761,7 +742,6 @@ def scenario_comparison_map_ui():
         pickable=True,
     )
 
-    # ---- MUCH IMPROVED TOOLTIP ----
     tooltip = {
         "html": (
             "<b>Node:</b> {NAME}<br>"
@@ -789,7 +769,6 @@ def scenario_comparison_map_ui():
     )
 
     st.pydeck_chart(deck)
-
 
 def _build_baseline_map_html(df_swmm_local: pd.DataFrame, unit_ui: str, ws_shp_path: str) -> str:
     ws_gdf_local = load_ws(ws_shp_path)
@@ -858,7 +837,6 @@ def _build_baseline_map_html(df_swmm_local: pd.DataFrame, unit_ui: str, ws_shp_p
         "padding:8px 10px !important; border-radius:8px !important;}</style></head>"
     )
 
-    # Legend
     cmap = mpl.colormaps.get_cmap("Blues")
     norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax, clip=True)
     c0 = [int(v * 255) for v in cmap(norm(vmin))[:3]]
@@ -975,8 +953,8 @@ def clip_rain_and_tide(rain, tide, duration_minutes):
     storm_steps = duration_minutes // 15
     idx_end = idx0 + storm_steps - 1
 
-    pre_steps = 2 * 4     # 2 hours = 8 steps
-    post_steps = 1 * 4    # 1 hour = 4 steps
+    pre_steps = 2 * 4     
+    post_steps = 1 * 4    
 
     start = idx0 - pre_steps
     end = idx_end + post_steps
@@ -1114,7 +1092,6 @@ def app_ui():
     )
 
     with st.form("scenario_settings"):
-        # ---------------- Units ----------------
         unit = st.radio(
             "Preferred Units",
             ["U.S. Customary", "Metric (SI)"],
@@ -1141,10 +1118,9 @@ def app_ui():
             )
         )
 
-        # ---------------- Storm Duration Slider ----------------
-        duration_options = [120, 240, 360, 480, 600, 720]  # 2, 4, 6, 8, 10, 12 hours
 
-        # Reset default duration if old value is incompatible
+        duration_options = [120, 240, 360, 480, 600, 720]  
+
         if cfg["duration_minutes"] not in duration_options:
             duration_default = 120
         else:
@@ -1166,8 +1142,6 @@ def app_ui():
         with d_high:
             st.caption("<div style='text-align:right;'>Longer storm</div>", unsafe_allow_html=True)
 
-
-        # ---------------- Return Period Slider ----------------
         rp_cols = [c for c in pf_df.columns if c != "Duration_Minutes" and str(c).isdigit()]
         rp_years = sorted(map(int, rp_cols)) if rp_cols else [1]
         rp_default = cfg.get("return_period")
@@ -1198,7 +1172,6 @@ def app_ui():
             help="Choose whether to run simulations using current rainfall (NOAA Atlas 14 Values) or a +20% future rainfall that Norfolk, VA utilizes in its design standards for new builds in preparation for the future climate conditions of the area."
         )
 
-        # ---------------- Tide Alignment ----------------
         align_choice = st.radio(
             "Tide Alignment",
             ["Rainfall aligned with High Tide", "Rainfall aligned with Low Tide"],
@@ -1218,7 +1191,7 @@ def app_ui():
             "ui_unit": unit,
             "moon_phase": moon_phase,
             "duration_minutes": int(duration_minutes),
-            "return_period": str(return_period),  # keep as string; downstream expects str
+            "return_period": str(return_period),  
              "align_mode": ("peak" if "High" in align_choice else "low"),
             "settings_ready": True,
             "rain_variant": ("future" if "Future" in rain_variant_choice else "current")
@@ -1278,8 +1251,6 @@ def app_ui():
         )
         tide_source = "synthetic"
 
-
-
     ui_unit = st.session_state.get("ui_unit", "U.S. Customary")
 
     display_rain_curve = to_ui_rain(rain_curve_in, ui_unit)
@@ -1288,7 +1259,6 @@ def app_ui():
     rain_disp_unit = "in" if ui_unit == "U.S. Customary" else "cm"
     tide_disp_unit = "ft" if ui_unit == "U.S. Customary" else "m"
 
-    # flooding / infiltration always computed in ft³
     display_flood_unit = "ft³" if ui_unit == "U.S. Customary" else "m³"
 
     st.session_state.update({
@@ -1307,22 +1277,15 @@ def app_ui():
         "align_mode": align_mode,
     })
 
-    # ------------------------------------------------------------
-    # BUILD RAINFALL + TIDE FOR SWMM (must run before buttons)
-    # ------------------------------------------------------------
 
-    # --- Clip rain + tide using the aligned 48hr curves ---
     rain_clip, tide_clip = clip_rain_and_tide(rain_curve_in, tide_curve_ui, duration_minutes)
 
-    # --- Build new timestamps ---
     sim_start_dt, sim_end_dt, report_start_dt = build_fixed_sim_windows(duration_minutes)
 
     rain_lines_cur = build_rain_timeseries(sim_start_dt, rain_clip)
     tide_lines = build_tide_timeseries(sim_start_dt, tide_clip)
     rain_lines_fut = build_rain_timeseries(sim_start_dt, rain_clip * 1.2)
 
-
-    # SAVE
     st.session_state["rain_lines_cur"] = rain_lines_cur
     st.session_state["rain_lines_fut"] = rain_lines_fut
     st.session_state["tide_lines"] = tide_lines
@@ -1331,10 +1294,8 @@ def app_ui():
     st.session_state[f"{prefix}rain_lines_fut"] = rain_lines_fut
     st.session_state[f"{prefix}tide_lines"] = tide_lines
 
-
     time_hours = np.array(minutes_15, dtype=float) / 60.0
 
-    # Build tidy dataframe for the chart
     df_rt = pd.DataFrame({
         "Hour": time_hours,
         "Rain_Current": st.session_state["display_rain_curve_current"],
@@ -1347,7 +1308,6 @@ def app_ui():
     run_current = (rain_variant == "current")
     run_future  = (rain_variant == "future")
 
-    # Optional quick metrics row (keep or remove as you prefer)
     c_m1, c_m2, c_m3 = st.columns(3)
     with c_m1:
         st.metric(f"Total Current Rainfall ({rain_disp_unit})", f"{np.nansum(df_rt['Rain_Current']):.2f}")
@@ -1359,11 +1319,9 @@ def app_ui():
     import altair as alt
     alt.data_transformers.disable_max_rows()
 
-    # Determine the hour at which rainfall is aligned (the rainfall peak)
     align_idx = int(np.argmax(df_rt["Rain_Current"]))
     align_hour = float(df_rt["Hour"].iloc[align_idx])
 
-    # ------------------- Vertical Alignment Line -------------------
     align_line = alt.Chart(df_rt).mark_rule(
         stroke="red",
         strokeDash=[6,6],
@@ -1374,7 +1332,6 @@ def app_ui():
         alt.datum.Hour == align_hour
     )
 
-    # ------------------- Rainfall Chart -------------------
     rain_base = alt.Chart(df_rt).encode(
         x=alt.X("Hour:Q", title="Hour")
     )
@@ -1394,7 +1351,6 @@ def app_ui():
 
     st.altair_chart(rain_chart, use_container_width=True)
 
-    # ------------------- Tide Chart -------------------
     tide_base = alt.Chart(df_rt).encode(
         x=alt.X("Hour:Q", title="Hour")
     )
@@ -1432,22 +1388,18 @@ def app_ui():
             )
 
 
-            # store baseline results under canonical keys
             st.session_state["scenario_runoff"][baseline_key] = info["df_runoff"]
             st.session_state["scenario_flood_volume"][baseline_key] = st.session_state.get(f"{baseline_key}_storm_total_flood", 0.0)
             st.session_state["scenario_infiltration"][baseline_key] = st.session_state.get(f"{baseline_key}_storm_infiltration", 0.0)
 
-            # label for UI only
             st.session_state["scenario_display_labels"][baseline_key] = make_display_label("baseline", "original")
 
-            # build baseline runoff map
             map_html, legend_html = _build_baseline_map_html(
                 df_swmm_local=info["df_runoff"],
                 unit_ui=st.session_state["unit_ui"],
                 ws_shp_path=WS_SHP_PATH
             )
 
-            # save visuals
             st.session_state[f"{baseline_key}_map_html"] = map_html
             st.session_state[f"{baseline_key}_legend_html"] = legend_html
             st.session_state[f"{baseline_key}_ready"] = True
@@ -1465,7 +1417,6 @@ def app_ui():
 
         c1, c2 = st.columns([1, 1])
 
-        # left side = runoff map
         with c1:
             st.markdown("#### Baseline Runoff")
             components.v1.html(
@@ -1478,11 +1429,9 @@ def app_ui():
                 unsafe_allow_html=True
             )
 
-
         with c2:
             st.markdown("#### Land Use / Land Cover")
 
-            # container to match the 500px height of the runoff map
             image_container = st.container()
             with image_container:
                 st.image("lulc_image.png", use_container_width=True)
@@ -1495,7 +1444,6 @@ def app_ui():
     def _load_raster_df() -> pd.DataFrame:
 
         return load_raster_cells()
-
 
     if "raster_df" not in st.session_state:
         try:
@@ -1514,7 +1462,6 @@ def app_ui():
 
     st.subheader("Plan LIDs")
 
-    # Explain the two paths *before* any controls
     st.info(
         "**Percent Uptake (whole watershed):** Choose the percent rain garden and rain barrel uptake across the whole watershed, highlighting collective action across the watershed."
     )
@@ -1525,14 +1472,12 @@ def app_ui():
         index=0
     )
 
-    # Load per-subcatchment maxima from raster_df
     caps_RG, caps_RB = load_caps_from_df(raster_df)
 
 
     if "Percent Uptake" in path_choice:
         st.markdown("### Percent Uptake (whole watershed)")
 
-        # Unit costs
         c1, c2 = st.columns(2)
         with c1:
             unit_cost_rg = st.number_input(
@@ -1543,37 +1488,30 @@ def app_ui():
                 "Rain Barrel cost ($/unit)", min_value=0.0, value=150.0, step=5.0
             )
 
-        # Percent sliders
         a1, a2 = st.columns(2)
         with a1:
             pct_rg = st.slider("RG uptake (%)", 0, 100, 20)
         with a2:
             pct_rb = st.slider("RB uptake (%)", 0, 100, 30)
 
-        # RAW PLAN (this is the ONLY source of truth)
         plan_base = realize_percent_uptake(pct_rg, pct_rb, caps_RG, caps_RB)
         plan_all_raw = plan_base.copy()           # ← LOCKED FOREVER
         cost_all_raw = plan_cost(plan_all_raw, unit_cost_rg, unit_cost_rb)
         RG_limit_all = sum(v["rain_gardens"] for v in plan_all_raw.values())
 
-        # Display raw Path A summary
         summary = summarize_plan(plan_all_raw, unit_cost_rg, unit_cost_rb)
         st.success(
             f"RG={summary['rg']} | RB={summary['rb']}   Estimated Cost: ${summary['spent']:,.0f}"
         )
 
-        # This is the target cost for all other scenarios
         target_cost = cost_all_raw
 
         def build_focus_plan(group_set):
 
-            # 1. Compute max RG capacity of this group
             max_RG_group = sum(caps_RG.get(s, 0) for s in group_set)
 
-            # 2. Determine how many RG we attempt to place
             RG_for_group = min(RG_limit_all, max_RG_group)
 
-            # 3. Allocate RG proportionally to each subcatchment’s capacity
             plan_group = {}
             for s in group_set:
                 cap_s = caps_RG.get(s, 0)
@@ -1586,7 +1524,6 @@ def app_ui():
                 else:
                     plan_group[s] = {"rain_gardens": 0, "rain_barrels": 0}
 
-            # 4. Fill remaining budget using RB
             plan_group = fill_with_rb_to_budget(
                 plan_group, caps_RB, unit_cost_rg, unit_cost_rb, target_cost
             )
@@ -1674,26 +1611,22 @@ def app_ui():
         """
         rows = []
         for label, plan in plans_dict.items():
-            # Counts
             rg_cnt = int(sum(v.get("rain_gardens", 0) for v in plan.values()))
             rb_cnt = int(sum(v.get("rain_barrels", 0)  for v in plan.values()))
-            # Cost
             total_cost = unit_cost_rg * rg_cnt + unit_cost_rb * rb_cnt
-            # Storage (ft³)
             storage_ft3 = rg_cnt * RG_STORAGE_FT3 + rb_cnt * RB_STORAGE_FT3 
 
             rows.append({
                 "Focus Area": label,
                 "RG_count": rg_cnt,
                 "RB_count": rb_cnt,
-                "TotalCost_K": total_cost / 1_000.0,   # dollars → $K for display
+                "TotalCost_K": total_cost / 1_000.0,   
                 "Storage_ft3": storage_ft3
             })
         return pd.DataFrame(rows)
 
 
     if plan_base is not None:
-        # Prepare inputs
         plans_dict = {
             "All":        plan_all,
             "Upstream":   plan_upstream,
@@ -1701,16 +1634,13 @@ def app_ui():
             "High runoff": plan_highro,
         }
         df_sum = build_focus_summary_df(plans_dict, unit_cost_rg, unit_cost_rb)  
-        # Apply unit conversion to storage volumes for UI
         ui_unit = st.session_state.get("unit_ui", "U.S. Customary")
 
         df_sum["Storage_ft3"] = df_sum["Storage_ft3"].apply(lambda v: to_ui_volume(v, ui_unit))
         storage_unit = "ft³" if ui_unit == "U.S. Customary" else "m³"
 
-        # Focus area ordering: sort by Total Cost ($K) descending
         focus_order = df_sum.sort_values("TotalCost_K", ascending=False)["Focus Area"].tolist()
 
-        # Focus area colors (keep your palette)
         focus_colors = {
             "All":        "#046d64",  # dark teal
             "Upstream":   "#1316AC",  # indigo
@@ -1718,7 +1648,6 @@ def app_ui():
             "High runoff":"#9555d1",  # purple
         }
 
-        # Helper: robust axis domain (always start at zero, pad by 10%)
         def _domain_zero_to_max(values: pd.Series, pad_ratio: float = 0.10) -> list[float]:
             arr = pd.to_numeric(values, errors="coerce").fillna(0.0).to_numpy(dtype=float)
             if arr.size == 0:
@@ -1728,7 +1657,6 @@ def app_ui():
                 return [0.0, 1.0]
             return [0.0, mx * (1.0 + pad_ratio)]
 
-        # Build one metric chart with shared styling & labels
         def _metric_chart(df: pd.DataFrame,
                         value_col: str,
                         title_text: str,
@@ -1741,7 +1669,6 @@ def app_ui():
             except Exception:
                 pass
 
-            # Prepare data
             df_plot = df[["Focus Area", value_col]].copy()
             df_plot.rename(columns={value_col: "Value"}, inplace=True)
             df_plot["Color"] = df_plot["Focus Area"].map(color_map).fillna("#777777")
@@ -1787,7 +1714,6 @@ def app_ui():
         A layout with fewer rain gardens and more rain barrels will have **less total storage**, even with the same budget. 
         """)
 
-        # --- Row 1: RG count | RB count ---
         row1 = st.columns(2, gap="large")
         with row1[0]:
             st.markdown("**RG count**")
@@ -1798,7 +1724,6 @@ def app_ui():
             ch_rb = _metric_chart(df_sum, "RB_count", "Count", focus_colors, focus_order)
             st.altair_chart(ch_rb, use_container_width=True)
 
-        # --- Row 2: Total cost ($K) | Storage (yd³) ---
         row2 = st.columns(2, gap="large")
         with row2[0]:
             st.markdown("**Total cost ($K)**")
@@ -1823,11 +1748,9 @@ def app_ui():
                 prefix = st.session_state["scenario_prefix"]
                 rain_variant = "future" if st.session_state.get("rain_variant") == "future" else "current"
 
-                # Choose rainfall lines
                 use_current = (rain_variant == "current")
                 rain_lines = st.session_state["rain_lines_cur"] if use_current else st.session_state["rain_lines_fut"]
 
-                # Available scenario groups
                 plan_sets = {
                     "baseline": None,
                     "all": plan_all,
@@ -1836,21 +1759,16 @@ def app_ui():
                     "highrunoff": plan_highro,
                 }
 
-                # Gate options
                 gate_opts = {
                     "nogate": "NO",
                     "gate": "YES",
                 }
 
-                # RESET ALL STORED DATA
                 st.session_state["scenario_display_labels"] = {}
                 st.session_state["scenario_flood_volume"] = {}
                 st.session_state["scenario_infiltration"] = {}
                 st.session_state["scenario_runoff"] = {}
 
-                # -----------------------------
-                # RUN ALL 10 SCENARIOS
-                # -----------------------------
                 try:
                     pipe_sizes = ["original", "bigger"]
 
@@ -1874,20 +1792,15 @@ def app_ui():
                                 prefix=prefix
                             )
 
-                            # --------------------------------------------
-                            # 5. Save outputs (uniform storage)
-                            # --------------------------------------------
                             flood_df = st.session_state.get(f"{scen_key}_node_flooding_summary")
                             infiltration = st.session_state.get(f"{scen_key}_storm_infiltration", 0.0)
 
-                            # flood volume from runner
                             flood_vol = st.session_state.get(f"{scen_key}_storm_total_flood", 0.0)
 
                             st.session_state["scenario_flood_volume"][scen_key] = flood_vol
                             st.session_state["scenario_infiltration"][scen_key] = infiltration
                             st.session_state["scenario_runoff"][scen_key] = result.get("df_runoff")
 
-                    # FINALIZE
                     st.success("All 10 scenarios completed successfully.")
                     st.session_state["scenarios_finished"] = True
                     st.session_state["display_summary"] = True

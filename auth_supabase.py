@@ -4,12 +4,10 @@ import streamlit as st
 import supabase
 from supabase import create_client
 
-# === DATABASE AUTH ===
 SUPABASE_DB_URL = st.secrets["SUPABASE_DB_URL"]
 conn = psycopg.connect(SUPABASE_DB_URL)
 cur = conn.cursor()
 
-# === AUTH HELPERS ===
 def hash_password(password):
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
@@ -19,7 +17,7 @@ def check_password(password, hashed):
 def create_user(email, password):
     cur.execute("SELECT 1 FROM users WHERE email = %s", (email,))
     if cur.fetchone():
-        return False  # Email already exists
+        return False  
     
     hashed = hash_password(password)
     try:
@@ -48,7 +46,6 @@ def reset_password(email, new_password):
         conn.rollback()
         print("Reset error:", e)
         return False
-
 
 def delete_user_files(user_id: str):
     try:
