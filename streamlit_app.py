@@ -2,6 +2,8 @@ import os, re, sys, shutil, tempfile, subprocess
 from datetime import datetime, timedelta
 from typing import Dict, Tuple, List
 
+import traceback
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -123,8 +125,10 @@ def _read_text_keep(path: str) -> str:
         return ""
 
 def ensure_temp_dir():
-    if "temp_dir" not in st.session_state:
-        st.session_state.temp_dir = tempfile.mkdtemp()
+    temp_dir = st.session_state.get("temp_dir")
+
+    if not temp_dir or not os.path.exists(temp_dir):
+        st.session_state["temp_dir"] = tempfile.mkdtemp()
 
 @st.cache_resource(show_spinner=False)
 def ensure_playwright_browsers():
@@ -169,7 +173,50 @@ def load_pipes(path: str):
 def load_raster_cells(path="LID_per_sub.xlsx") -> pd.DataFrame:
     return pd.read_excel(path)
 
+def logout():
+    temp_dir = st.session_state.get("temp_dir")
 
+    if temp_dir and os.path.exists(temp_dir):
+        try:
+            shutil.rmtree(temp_dir)
+        except Exception:
+            pass
+
+    st.session_state.clear()
+    st.rerun()
+
+def reset_simulation_state():
+    """
+    Clears old storm/scenario state and deletes old temp simulation files,
+    while keeping the user logged in.
+    """
+
+    user_id = st.session_state.get("user_id")
+    email = st.session_state.get("email")
+
+    old_temp_dir = st.session_state.get("temp_dir")
+
+    if old_temp_dir and os.path.exists(old_temp_dir):
+        try:
+            shutil.rmtree(old_temp_dir)
+        except Exception as e:
+            st.warning(f"Could not remove old simulation files: {e}")
+
+    # Clear all session state
+    st.session_state.clear()
+
+    # Restore login identity
+    if user_id:
+        st.session_state["user_id"] = user_id
+        st.session_state["scenario_prefix"] = f"user_{user_id}_"
+
+    if email:
+        st.session_state["email"] = email
+
+    # Create a fresh temp folder for the next storm
+    st.session_state["temp_dir"] = tempfile.mkdtemp()
+
+    st.rerun()
 
 def make_color(values, vmin, vmax, a=0.9):
     norm = mcolors.Normalize(vmin=vmin, vmax=vmax, clip=True)
@@ -518,7 +565,16 @@ def run_swmm_scenario(
     else:
         template_path = st.session_state[f"{prefix}template_original"]
 
-    output_dir = tempfile.mkdtemp(prefix=f"{scenario_name}_")
+    base_temp_dir = st.session_state.get("temp_dir")
+
+    if not base_temp_dir or not os.path.exists(base_temp_dir):
+        base_temp_dir = tempfile.mkdtemp()
+        st.session_state["temp_dir"] = base_temp_dir
+
+    output_dir = tempfile.mkdtemp(
+        prefix=f"{scenario_name}_",
+        dir=base_temp_dir
+    )
 
     inp_path = os.path.join(output_dir, f"{scenario_name}.inp")
     rpt_path = os.path.join(output_dir, f"{scenario_name}.rpt")
@@ -1490,9 +1546,9 @@ def app_ui():
 
         a1, a2 = st.columns(2)
         with a1:
-            pct_rg = st.slider("RG uptake (%)", 0, 100, 20)
+            pct_rg = st.slider("RG uptake (%)", 0, 100, 35)
         with a2:
-            pct_rb = st.slider("RB uptake (%)", 0, 100, 30)
+            pct_rb = st.slider("RB uptake (%)", 0, 100, 35)
 
         plan_base = realize_percent_uptake(pct_rg, pct_rb, caps_RG, caps_RB)
         plan_all_raw = plan_base.copy()           # ← LOCKED FOREVER
@@ -1805,20 +1861,27 @@ def app_ui():
                     st.session_state["scenarios_finished"] = True
                     st.session_state["display_summary"] = True
 
+
                 except Exception as e:
                     st.error(f"Scenario loop failed: {e}")
+                    st.code(traceback.format_exc())
                     st.stop()
+
 
     flooding_summary_ui()
     scenario_comparison_map_ui()
 
     st.markdown("---")
-    if st.button("🚪 Logout"):
-        try: shutil.rmtree(st.session_state.temp_dir)
-        except Exception: pass
-        st.session_state.clear()
-        st.success("Logged out and cleaned up all files.")
-        st.experimental_rerun()
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("🔄 Start New Storm / Reset Simulation"):
+            reset_simulation_state()
+
+    with col2:
+        if st.button("🚪 Logout"):
+            logout()
 
 if "user_id" not in st.session_state:
     login_ui()
