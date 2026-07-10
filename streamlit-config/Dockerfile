@@ -1,34 +1,41 @@
-FROM docker.io/library/ubuntu:latest
+FROM python:3.10-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update &&\
+# Install system dependencies needed for Playwright and scientific libs
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3-pip \
-    python3-venv \
-    python3-dev \
-    build-essential \
-    git && \
+        build-essential \
+        git \
+        curl \
+        wget \
+        libglib2.0-0 \
+        libnss3 \
+        libatk1.0-0 \
+        libatk-bridge2.0-0 \
+        libxkbcommon0 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxfixes3 \
+        libxrandr2 \
+        libgbm1 \
+        libpango-1.0-0 \
+        libcairo2 && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
 COPY . /app
 
+# Create venv (optional but OK)
 ENV VIRTUAL_ENV=/opt/venv
-
-RUN python3 -m venv $VIRTUAL_ENV
-
+RUN python -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-RUN pip3 install --no-cache-dir -r requirements.txt 
-
-RUN python -m playwright install-deps
-
-RUN python -m playwright install chromium
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 8501
 
-COPY streamlit-config/secrets.toml .streamlit/secrets.toml
+COPY secrets.toml .streamlit/secrets.toml
 
 ENTRYPOINT ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
