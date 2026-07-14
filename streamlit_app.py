@@ -720,6 +720,7 @@ def scenario_comparison_map_ui():
     st.markdown("**Blue:** Scenario B has more flooding")
     st.markdown("**Gray:** no meaningful change")
     st.markdown("**Circle size:** magnitude of difference")
+    st.info("Hover over circles to view flooding differences at intersections. Some map areas may not display information because results are only available at intersection locations (nodes).")
 
     labels = st.session_state.get("scenario_display_labels", {})
     if not labels:
@@ -1144,7 +1145,7 @@ def app_ui():
     st.success(
         "Use the controls below to configure your storm scenario. "
         "These settings determine the rainfall event, tide conditions, and alignment "
-        "that will be used to generate inputs for the simulation."
+        "that will be used to generate inputs for the simulation. Note turn your computer setting to light/day mode otherwise some information may not be seen."
     )
 
     with st.form("scenario_settings"):
@@ -1472,6 +1473,8 @@ def app_ui():
     if st.session_state.get(f"{baseline_key}_ready", False):
 
         st.markdown("### Baseline Runoff and Land Cover")
+        st.info("Hover over and zoom in/out (using your mouse's scroll wheel) the Baseline Runoff map to see individual numbers")
+
 
         c1, c2 = st.columns([1, 1])
 
@@ -1523,7 +1526,11 @@ def app_ui():
     st.info(
         "**Percent Uptake (whole watershed):** Choose the percent rain garden and rain barrel uptake across the whole watershed, highlighting collective action across the watershed."
     )
-
+    
+    image_container = st.container()
+    with image_container:
+        st.image("green_infrastructure_options.png", use_container_width=True)
+        
     path_choice = st.selectbox(
         "Select a planning path:",
         ["Percent Uptake"],
