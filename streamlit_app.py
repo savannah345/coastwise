@@ -130,17 +130,6 @@ def ensure_temp_dir():
     if not temp_dir or not os.path.exists(temp_dir):
         st.session_state["temp_dir"] = tempfile.mkdtemp()
 
-@st.cache_resource(show_spinner=False)
-def ensure_playwright_browsers():
-    subprocess.run(
-        [sys.executable, "-m", "playwright", "install", "chromium"],
-        check=False,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        text=True,
-    )
-ensure_playwright_browsers()
-
 MSL_OFFSET_NAVD88_FT = 0
 
 WS_SHP_PATH  = st.session_state.get("WS_SHP_PATH", "map_files/Subcatchment.shp")
