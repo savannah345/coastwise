@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM mcr.microsoft.com/playwright/python:v1.49.0-jammy
 
 ENV DEBIAN_FRONTEND=noninteractive
 
