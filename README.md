@@ -96,12 +96,11 @@ This allows users to clearly see:
 3. Unzip that file
 4. Open Docker
 5. Open Terminal in Docker (bottom right of page)
-6. Type cd "C:\Users\YOUR_NAME\Downloads\coastwise-main\coastwise-main" and press enter or wherever you stored that unzipped file in the folder where you see a long list of files including the streamlit_app.py
-7. And when you type dir you will see the file names like streamlit_app.py
-8. Then type "docker compose up" and press enter
-9. It takes a couple minutes to get everything up and running. It will tell you when it is done.
-10. Then you can open a local browser: http://localhost:8501
-11. Create an account – this data is not used for anything – it can even be a "fake email" with PW 1234: just remember your login for the login portion. 
+6. Type cd "C:\Users\YOUR_NAME\Downloads\coastwise-main\coastwise-main\streamlit-config" and press enter or wherever you stored that unzipped file in the folder where you see a Docker file
+7. Then type "docker compose up" and press enter
+8. It takes a couple minutes to get everything up and running. It will tell you when it is done.
+9. Then you can open a local browser: http://localhost:8501
+10. Create an account – this data is not used for anything – it can even be a "fake email" with PW 1234: just remember your login for the login portion. 
 
 
 
