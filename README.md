@@ -5,14 +5,6 @@ CoastWise is a full workflow for constructing storm scenarios, generating rainfa
 The Streamlit app is the central user interface for CoastWise. It integrates rainfall/tide generation, land-use–based LID planning, SWMM model execution, flooding extraction, and interactive map/chart visualization.
 
 ---
-
-## User Authentication
-Login, signup, and password reset using:  
-- **Supabase** (if running in free Streamlit Cloud), or  
-- **PostgreSQL** (if running in Docker)
-
----
-
 ## Storm Scenario Builder
 Users can configure storm and tide conditions, including:
 
@@ -49,7 +41,7 @@ Five spatial layouts are run under the same budget:
 4. **Downstream areas**  
 5. **High-runoff areas**
 
-Each layout is modeled with the **Tide Gate & Pump ON** and **OFF**, producing:
+Each layout is modeled with the **original stormwater pipe network** and **an upsized pipe network with increased pipe diameters**, producing:
 
 **10 total SWMM scenarios**
 
@@ -71,7 +63,6 @@ CoastWise extracts this directly from the **Node Flooding Summary** within the `
 The app then displays a ranked bar chart so users can quickly see:
 
 - Which scenario performs **best** at reducing flooding  
-- How much influence the **tide gate** has  
 - Which LID layout produces the largest **flood-reduction benefit**
 
 ---
