@@ -90,7 +90,7 @@ This allows users to clearly see:
 - Where LIDs reduce flooding  
 - Which areas see improvements or regressions based on LID placement
 
-## To Try on Your Local Machine using Docker Perform the Following Actions
+## Running the Project Locally with Docker
 1. Download Docker for Desktop - Docker Desktop
 2. Go to GitHub link download zip file by clicking the green Code button - at the top 
 3. Unzip that file
