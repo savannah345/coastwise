@@ -1516,9 +1516,21 @@ def app_ui():
         "**Percent Uptake (whole watershed):** Choose the percent rain garden and rain barrel uptake across the whole watershed, highlighting collective action across the watershed."
     )
     
-    image_container = st.container()
-    with image_container:
-        st.image("green_infrastructure_options.png", use_container_width=True)
+    c1, c2 = st.columns([1, 1])
+
+    with c1:
+        st.markdown("#### Rain Garden")
+
+        image_container = st.container()
+        with image_container:
+            st.image("rain_garden.jpg", use_container_width=True)
+
+    with c2:
+        st.markdown("#### Rain Barrel")
+
+        image_container = st.container()
+        with image_container:
+            st.image("rainbarrel.jpg", use_container_width=True)
         
     path_choice = st.selectbox(
         "Select a planning path:",
