@@ -1136,7 +1136,11 @@ def app_ui():
         "These settings determine the rainfall event, tide conditions, and alignment "
         "that will be used to generate inputs for the simulation. Note turn your computer setting to light/day mode otherwise some information may not be seen."
     )
-
+    
+    st.markdown(
+    'Need help getting started? View the [Tutorial](https://docs.google.com/document/d/1xMxoe41xhWPsPlzUIjQP4K9K_vjhjelN0hgvqfoflGY/edit?usp=sharing).'
+    )
+   
     with st.form("scenario_settings"):
         unit = st.radio(
             "Preferred Units",
