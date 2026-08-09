@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright/python:v1.49.0-jammy
+FROM python:3.11-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -16,8 +16,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir -r requirements.txt
-
-RUN playwright install chromium
 
 EXPOSE 8501
 

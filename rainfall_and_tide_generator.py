@@ -175,138 +175,7 @@ def align_rainfall_to_tide(total_inches: float,
     minutes_15 = np.arange(n, dtype=int) * 15
     return minutes_15, rain, center_index
 
-GREENSTREAM_URL = "https://dashboard.greenstream.cloud/detail?id=SITE#d935fec2-7a0b-4df0-986c-76f25d773070"
-WATER_COL_LIVE = "Water Level NAVD88 (ft)"  
-
-
-X_FILTER   = 1565   
-X_DOWNLOAD = 1470   
-TOL        = 40
-TOP_Y_MAX  = 100
-ICON_MIN_W, ICON_MAX_W = 24, 56
-
-def _find_icon_by_x(page, x_target, tol, top_y_max, min_w, max_w):
-    nodes = page.locator("div, span, svg")
-    n = nodes.count()
-    best = None
-    best_dx = float("inf")
-    for i in range(n):
-        h = nodes.nth(i).element_handle()
-        if not h:
-            continue
-        box = h.bounding_box()
-        if not box:
-            continue
-        if (box["y"] < top_y_max and min_w <= box["width"] <= max_w
-                and min_w <= box["height"] <= max_w):
-            dx = abs(box["x"] - x_target)
-            if dx < best_dx:
-                best_dx, best = dx, h
-    if best is None or best_dx > tol:
-        raise RuntimeError(f"Icon not found near x≈{x_target} (Δx={best_dx:.1f}). Adjust TOL/viewport.")
-    return best
-
-def _click_handle_by_center(page, handle):
-    box = handle.bounding_box()
-    if not box:
-        raise RuntimeError("No bounding box for element.")
-    try:
-        handle.click(timeout=1500)
-    except Exception:
-        cx = box["x"] + box["width"] / 2
-        cy = box["y"] + box["height"] / 2
-        page.mouse.click(cx, cy)
-
-def fetch_RT_tide_dataframe() -> pd.DataFrame:
-    """
-    Opens the Greenstream dashboard, does:
-      Filter -> Last 2 Days -> OK -> Download,
-    and returns the file as a pandas DataFrame (no saving to disk).
-    """
-    from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"]
-        )
-        context = browser.new_context(accept_downloads=True, viewport={"width": 1600, "height": 900})
-        page = context.new_page()
-        page.goto(GREENSTREAM_URL, wait_until="domcontentloaded")
-
-        filter_handle = _find_icon_by_x(page, X_FILTER, TOL, TOP_Y_MAX, ICON_MIN_W, ICON_MAX_W)
-        _click_handle_by_center(page, filter_handle)
-
-        drawer = page.locator("div.drawer")
-        drawer.wait_for(state="visible", timeout=5000)
-
-        try:
-            drawer.get_by_text("Last 2 Days", exact=True).click(timeout=2000)
-        except PWTimeout:
-            drawer.locator("div.radioButton").nth(1).click()  
-
-        ok_clicked = False
-        for loc in [
-            drawer.get_by_role("button", name=re.compile(r"^OK$", re.I)),
-            drawer.locator("button:has-text('OK')"),
-            drawer.locator("[role=button]:has-text('OK')"),
-            drawer.locator("[class*=Button]:has-text('OK')"),
-            drawer.get_by_text(re.compile(r"^\s*OK\s*$", re.I)),
-        ]:
-            try:
-                if loc.count():
-                    el = loc.first
-                    el.scroll_into_view_if_needed()
-                    el.click(timeout=1500)
-                    ok_clicked = True
-                    break
-            except Exception:
-                pass
-        if not ok_clicked:
-            bb = drawer.bounding_box()
-            if bb:
-                page.mouse.click(bb["x"] + bb["width"] - 60, bb["y"] + bb["height"] - 40)
-
-        # Settle
-        try:
-            drawer.wait_for(state="hidden", timeout=4000)
-        except PWTimeout:
-            pass
-        try:
-            page.wait_for_load_state("networkidle", timeout=6000)
-        except PWTimeout:
-            pass
-
-        dl_el = page.locator("[title='Download']").first
-        if dl_el.count():
-            with page.expect_download(timeout=20000) as dl_info:
-                try:
-                    dl_el.click(timeout=1500)
-                except Exception:
-                    _click_handle_by_center(page, dl_el.element_handle())
-            dl = dl_info.value
-        else:
-            download_handle = _find_icon_by_x(page, X_DOWNLOAD, TOL, TOP_Y_MAX, ICON_MIN_W, ICON_MAX_W)
-            with page.expect_download(timeout=20000) as dl_info:
-                _click_handle_by_center(page, download_handle)
-            dl = dl_info.value
-
-        tmp_path = dl.path()
-        suggested = (dl.suggested_filename or "").lower()
-
-        try:
-            if suggested.endswith((".xlsx", ".xls")):
-                df = pd.read_excel(tmp_path)
-            else:
-                df = pd.read_csv(tmp_path)
-        except Exception:
-            try:
-                df = pd.read_csv(tmp_path)
-            except Exception:
-                df = pd.read_excel(tmp_path)
-
-        browser.close()
-        return df
+WATER_COL_LIVE = "fake_name"
 
 def build_timestep_and_resample_15min(df_raw: pd.DataFrame,
                                       water_col: str = WATER_COL_LIVE,
@@ -363,31 +232,17 @@ def build_timestep_and_resample_15min(df_raw: pd.DataFrame,
 
     return minutes_15, tide_15
 
-def get_tide_real_or_synthetic(moon_phase: str,
-                               unit: str,
-                               start_ts: Optional[pd.Timestamp] = None,
-                               navd88_to_sea_level_offset_ft: float = 0
-                               ) -> Tuple[np.ndarray, np.ndarray, bool]:
-    """
-    Try live tide (Greenstream). If it fails, return synthetic tide.
-    Returns:
-      minutes_15 (np.ndarray),
-      tide_15    (np.ndarray) in selected 'unit' (ft or m), already shifted to MSL,
-      used_live  (bool)
-    """
-    try:
-        df_live = fetch_RT_tide_dataframe()
-        m15, tide_15 = build_timestep_and_resample_15min(
-            df_raw=df_live,
-            water_col=WATER_COL_LIVE,
-            unit=unit,
-            start_ts=start_ts,
-            navd88_to_sea_level_offset_ft=navd88_to_sea_level_offset_ft  
-        )
-        return m15, tide_15, True
-    except Exception:
-        m15, tide_15 = generate_tide_curve(moon_phase, "U.S. Customary")
-        return m15, tide_15, False
+def get_tide_real_or_synthetic(
+    moon_phase,
+    unit,
+    start_ts=None,
+    navd88_to_sea_level_offset_ft=0
+):
+    m15, tide_15 = generate_tide_curve(
+        moon_phase,
+        "U.S. Customary"
+    )
+    return m15, tide_15, False
 
 def get_aligned_rainfall(
     total_inches: float,
