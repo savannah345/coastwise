@@ -1,0 +1,42 @@
+Bootstrap: docker
+From: python:3.11-slim
+
+%files
+    . /app
+    streamlit-config/secrets.toml /root/.streamlit/secrets.toml
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        python3-dev \
+        git \
+        curl \
+        wget
+
+    mkdir -p /root/.streamlit
+
+    cd /app
+    pip install --no-cache-dir -r requirements.txt
+
+    rm -rf /var/lib/apt/lists/*
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export PATH=/usr/local/bin:$PATH
+
+%runscript
+    exec streamlit run /app/streamlit_app.py \
+        --server.port=8501 \
+        --server.address=0.0.0.0
+
+%labels
+    Author Lynn
+    Application Streamlit
+
+%help
+    Run the Streamlit app with:
+
+        apptainer run streamlit.sif
