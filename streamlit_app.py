@@ -158,7 +158,7 @@ def load_pipes(path: str):
     gdf = gdf[gdf.geometry.notnull() & gdf.geometry.geom_type.isin(["LineString","MultiLineString"])]
     return gdf
 
-def load_raster_cells(path="LID_per_sub.xlsx") -> pd.DataFrame:
+def load_raster_cells(path="LID_per_subcatchment.xlsx") -> pd.DataFrame:
     return pd.read_excel(path)
 
 def logout():
