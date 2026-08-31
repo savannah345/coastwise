@@ -158,7 +158,6 @@ def load_pipes(path: str):
     gdf = gdf[gdf.geometry.notnull() & gdf.geometry.geom_type.isin(["LineString","MultiLineString"])]
     return gdf
 
-@st.cache_data(show_spinner=False)
 def load_raster_cells(path="LID_per_sub.xlsx") -> pd.DataFrame:
     return pd.read_excel(path)
 
@@ -1499,12 +1498,7 @@ def app_ui():
 
         return load_raster_cells()
 
-    if "raster_df" not in st.session_state:
-        try:
-            st.session_state["raster_df"] = _load_raster_df()
-        except Exception as e:
-            st.error(f"Failed to load raster/subcatchment table: {e}")
-            st.stop()
+    st.session_state["raster_df"] = _load_raster_df()
 
     raster_df: pd.DataFrame = st.session_state["raster_df"]
 
