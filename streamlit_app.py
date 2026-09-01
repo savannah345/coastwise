@@ -1544,9 +1544,9 @@ def app_ui():
 
         a1, a2 = st.columns(2)
         with a1:
-            pct_rg = st.slider("RG uptake (%)", 0, 100, 35)
+            pct_rg = st.slider("Rain Garden Adoption Rate: Choose the percentage of households assumed to install rain gardens.", 0, 100, 35)
         with a2:
-            pct_rb = st.slider("RB uptake (%)", 0, 100, 35)
+            pct_rb = st.slider("Rain Barrel Adoption Rate: Choose the percentage of households assumed to install rain barrels.", 0, 100, 35)
 
         plan_base = realize_percent_uptake(pct_rg, pct_rb, caps_RG, caps_RB)
         plan_all_raw = plan_base.copy()           # ← LOCKED FOREVER
