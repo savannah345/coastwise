@@ -1511,7 +1511,7 @@ def app_ui():
     st.subheader("Plan LIDs")
 
     st.info(
-        "**Percent Uptake (whole watershed):** Choose the percent rain garden and rain barrel uptake across the whole watershed, highlighting collective action across the watershed."
+        "**Percent Participation (whole watershed):** Choose the percentage of households that participate by installing rain gardens and/or rain barrels across the watershed."
     )
     
 
@@ -1522,15 +1522,15 @@ def app_ui():
         
     path_choice = st.selectbox(
         "Select a planning path:",
-        ["Percent Uptake"],
+        ["Participation Percent"],
         index=0
     )
 
     caps_RG, caps_RB = load_caps_from_df(raster_df)
 
 
-    if "Percent Uptake" in path_choice:
-        st.markdown("### Percent Uptake (whole watershed)")
+    if "Participation Percent" in path_choice:
+        st.markdown("### Participation Percent (whole watershed)")
 
         c1, c2 = st.columns(2)
         with c1:
